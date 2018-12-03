@@ -1,6 +1,7 @@
 #!/bin/bash
 
 REPO_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"; cd .. && pwd )"
+mkdir -p "$REPO_DIR/output/sources"
 
 if [[ "$1" == "--chrome" ]]; then
     # Google Chrome / Chromium
