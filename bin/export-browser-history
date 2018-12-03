@@ -34,3 +34,41 @@ if [[ "$1" == "--firefox" ]]; then
     echo "Firefox history exported to:"
     echo "    output/sources/firefox_history.json"
 fi
+
+file_size () {
+    stat -f "%z" "$1"
+}
+
+finder_copy () {
+    osascript <<END
+tell application "Finder"
+    copy file "$1" to folder "$2"
+end tell
+END
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+    src="$(echo "$1" | sed -e 's,^Macintosh HD,,'|tr : /)"
+    dest="$(echo "$2" | sed -e 's,^Macintosh HD,,'|tr : /)/$(basename "$src")"
+    while :; do
+        if [ "$(file_size "$src")" = "$(file_size "$dest")" ]; then
+            break
+        fi
+        sleep 0.5
+    done
+    # echo >&2 "Copied $src to $dest"
+}
+
+if [[ "$1" == "--safari" ]]; then
+    # Safari
+    # In recent macOS, History.db can't be accessed at a commandline, even as
+    # root. Use finder to copy it and read the copy instead.
+    rm -f "$REPO_DIR/output/sources/History.db"
+    finder_copy "Macintosh HD$(echo "$HOME" | tr '/' ':'):Library:Safari:History.db" "Macintosh HD$(echo "$REPO_DIR" | tr '/' ':'):output:sources" && \
+        mv "$REPO_DIR/output/sources/History.db" "$REPO_DIR/output/sources/safari_history.db.tmp"
+    sqlite3 "$REPO_DIR/output/sources/safari_history.db.tmp" "SELECT \"[\" || group_concat(json_object('timestamp', round(visit_time+978307200)+1000000, 'description', title, 'href', url)) || \"]\" FROM history_visits INNER JOIN history_items ON history_items.id = history_visits.history_item ORDER BY visit_time DESC;" > "$REPO_DIR/output/sources/safari_history.json"
+
+    rm "$REPO_DIR"/output/sources/safari_history.db.*
+    echo "Safari history exported to:"
+    echo "    output/sources/safari_history.json"
+fi
