@@ -109,7 +109,7 @@ def parse_json_export(json_file):
             if erg.get('description'):
                 title = (erg.get('description') or '').replace(' — Readability', '')
             else:
-                title = erg['title']
+                title = erg.get('title') or base_url(url)
             info = {
                 'url': url,
                 'domain': domain(url),
