@@ -13,7 +13,7 @@ if [[ "$1" == "--chrome" ]]; then
         echo "Optionally specify the path to a different sqlite history database as the 2nd argument."
         cp "$default" "$REPO_DIR/output/sources/chrome_history.db.tmp"
     fi
-    sqlite3 "$REPO_DIR/output/sources/chrome_history.db.tmp" "SELECT \"[\" || group_concat(json_object('timestamp', last_visit_time, 'description', title, 'href', url)) || \"]\" FROM urls;" > "$REPO_DIR/output/sources/chrome_history.json"
+    sqlite3 "$REPO_DIR/output/sources/chrome_history.db.tmp" "SELECT \"[\" || group_concat(json_object('timestamp', (last_visit_time-11644446702000000)*10, 'description', title, 'href', url)) || \"]\" FROM urls;" > "$REPO_DIR/output/sources/chrome_history.json"
     rm "$REPO_DIR"/output/sources/chrome_history.db.*
     echo "Chrome history exported to:"
     echo "    output/sources/chrome_history.json"
